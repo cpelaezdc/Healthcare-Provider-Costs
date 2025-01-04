@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  nifi:
+    cap_add:
+      - NET_ADMIN # low port bindings
+    image: apache/nifi:2.0.0
+    environment:
+      - TZ=America/Montreal
+      - NIFI_WEB_HTTP_HOST=nifi
+      - SINGLE_USER_CREDENTIALS_USERNAME=dataengineer
+      - SINGLE_USER_CREDENTIALS_PASSWORD=dataengineer
+      
+    container_name: healthcare-nifi
+    ports:
+      - "8080:8080/tcp" # HTTP interface
+      - "8443:8443/tcp" # HTTPS interface
+      - "514:514/tcp" # Syslog
+      - "514:514/udp" # Syslog
+      - "2055:2055/udp" # NetFlow
+    volumes:
+      - ./drivers:/opt/nifi/nifi-current/drivers
+      - ./certs:/opt/certs
+      - nifi-conf:/opt/nifi/nifi-current/conf
+      #- ./drivers/postgresql-42.7.4.jar:/opt/nifi/nifi-current/drivers/postgresql-42.7.4.jar
+      
+    restart: unless-stopped
+
+  postgres_db:
+    image: postgres:latest
+    container_name: healthcare-dw
+    ports:
+      - 5432:5432  
+    volumes:
+      - ./postgres-datawarehouse:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=dataengineer
+      - POSTGRES_USER=dataengineer
+      - POSTGRES_DB=healthcare 
+    
+volumes:
+  drivers:
+  certs:
+  nifi-conf:
+  postgres-datawarehouse:   

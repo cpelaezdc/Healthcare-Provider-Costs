@@ -33,9 +33,79 @@ In this project, we'll develop an ETL pipeline using Apache NiFi to process heal
 ![DataModel](/assets/data_model.png)
 
 ## Environments
-🚧 **Under Construction** 🚧
+
 *  NIFI [docker-compose.yml](docker-compose.yml)
 *  PosgreSQL [docker-compose.yml](docker-compose.yml) 
+
+Both NIFI and the Data Warehouse in PostgreSQL will be deployed in the same Docker Compose file.  
+
+```yml
+version: '3'
+
+services:
+  nifi:
+    cap_add:
+      - NET_ADMIN # low port bindings
+    image: apache/nifi:2.0.0
+    environment:
+      - TZ=America/Montreal
+      - NIFI_WEB_HTTP_HOST=nifi
+      - SINGLE_USER_CREDENTIALS_USERNAME=dataengineer
+      - SINGLE_USER_CREDENTIALS_PASSWORD=dataengineer
+      
+    container_name: healthcare-nifi
+    ports:
+      - "8080:8080/tcp" # HTTP interface
+      - "8443:8443/tcp" # HTTPS interface
+      - "514:514/tcp" # Syslog
+      - "514:514/udp" # Syslog
+      - "2055:2055/udp" # NetFlow
+    volumes:
+      - ./drivers:/opt/nifi/nifi-current/drivers
+      - ./certs:/opt/certs
+      - nifi-conf:/opt/nifi/nifi-current/conf
+      
+    restart: unless-stopped
+
+  postgres_db:
+    image: postgres:latest
+    container_name: healthcare-dw
+    ports:
+      - 5432:5432  
+    volumes:
+      - ./postgres-datawarehouse:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=dataengineer
+      - POSTGRES_USER=dataengineer
+      - POSTGRES_DB=healthcare 
+    
+volumes:
+  drivers:
+  certs:
+  nifi-conf:
+  postgres-datawarehouse:   
+```
+
+Launch the docker compose in same git repository directory:
+
+```bash
+docker compose up -d
+```
+
+Open NIFI in browser:
+```http
+https://localhost:8443/
+```
+
+As specified in the Docker Compose file, the username and password for both NIFI and Postgres will be identical:
+```text
+user:  dataengineer
+password: dataengineer
+```
+```text
+database name: healthcare
+```
+
 
 ## Scripts
 🚧 **Under Construction** 🚧
