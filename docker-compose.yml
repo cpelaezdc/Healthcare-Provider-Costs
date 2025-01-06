@@ -21,25 +21,30 @@ services:
     volumes:
       - ./drivers:/opt/nifi/nifi-current/drivers
       - ./certs:/opt/certs
+      - ./datasets:/opt/nifi/nifi-current/datasets
+      - ./flow_definition:/opt/nifi/nifi-current/flow_definition
       - nifi-conf:/opt/nifi/nifi-current/conf
       #- ./drivers/postgresql-42.7.4.jar:/opt/nifi/nifi-current/drivers/postgresql-42.7.4.jar
       
     restart: unless-stopped
 
-  postgres_db:
+  postgres:
     image: postgres:latest
     container_name: healthcare-dw
+    restart: always # Restart the container if it stops
     ports:
-      - 5432:5432  
+      - 51432:5432
     volumes:
       - ./postgres-datawarehouse:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=dataengineer
-      - POSTGRES_USER=dataengineer
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
       - POSTGRES_DB=healthcare 
     
 volumes:
   drivers:
   certs:
+  datasets:
+  flow_definition:
   nifi-conf:
   postgres-datawarehouse:   
