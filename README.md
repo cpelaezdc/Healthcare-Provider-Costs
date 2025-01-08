@@ -30,7 +30,7 @@ In this project, we'll develop an ETL pipeline using Apache NiFi to process heal
     * Dimension Tables:
       * **dim_zipcode**: Contains all US zipcodes with corresponding descriptions (city, state, etc.).
       * **dim_specialty**: Contains different medical specialties.
-      * **dim_procedure**: Contains descriptions of codes for Established Patient Office Visits.
+      * **dim_proc_terminology**: Contains alphanumeric codes used to describe medical, surgical, and diagnostic services
     * Fact Table:
       * **fact_visit_cost**: Contains all costs from different specialties.
 *  Data Visualization: Leveraging Power BI to create interactive dashboards and visualizations for insightful analysis.
@@ -51,8 +51,8 @@ In this project, we'll develop an ETL pipeline using Apache NiFi to process heal
 
 
 ## Data Model
-🚧 **Under Construction** 🚧
-![DataModel](/assets/data_model.png)
+
+![DataModel](assets/img/data_model.png)
 
 ## Environments
 
