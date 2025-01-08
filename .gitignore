@@ -1,2 +1,3 @@
 /postgres-datawarehouse
 /certs
+/datasets/output/*.*

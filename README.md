@@ -37,7 +37,7 @@ In this project, we'll develop an ETL pipeline using Apache NiFi to process heal
 
 
 ## Arquitecture
-![Arquitecture](assets/Arquitecture.png)
+![Arquitecture](assets/img/Arquitecture.png)
 
 
 ## Tools:
@@ -137,7 +137,7 @@ database name: healthcare
 
 
 ## Scripts
-🚧 **Under Construction** 🚧
+For this NiFi project, I exclusively utilized the NiFi Definition Language and SQL  to configure all data flow components and their interactions.
 
 
 ## Visualisations
@@ -150,37 +150,51 @@ database name: healthcare
 
 ### Pipeline general view
 
-*  Initialize Flow processor (**GenerateFlowFile**) wil launch the pipeline and sent differents attributes to next processors. 
-*  Load Specialties File (**FetchFile**) will load a csv files with the all surgery specialties and respective API code to be userd to retrives the corresponding data.  
+*  Initialize Flow processor (**GenerateFlowFile**) wil launch the pipeline and sent differents attributes to corresponding branches of pipeline.
 
 ![General view](assets/img/nifi_general_pipeline.png)
 
-### SPECIALTY COST process group
 
-*  The SPECIALTY COST process group will extract and transform data retrieved from API requests.
-![Specialty Cost](assets/img/nifi_specialty_cost_process_group.png)
 
-### EXTRACT process group
 
-* This is the mos important process.  For each specialty retrieves all the costs and corresponding zipcodes.
-* Since retrieving all records in a single request is impossible due to the server's 2000-record limit, a loop is implemented. This loop fetches data in batches of 2000, incrementing the offset for each iteration until all records are retrieved.
+### Dimension Tables:
+
+* Source Data: Dimension table source files are in CSV and Excel formats.
+* Data Transformation:
+  * Employs the ConvertRecord processor to convert data to JSON format before transformation.
+  * Approach: Employs the QueryRecord processor for efficient and targeted data transformations.
+* Load:
+  * Approach:  Employs of PutDatabaseRecord processor to load in Postgres.  
+
+![dim_tables](assets/img/nifi_load_dim_tables.png)
+
+
+
+### Factual Table:
+
+*  **Dimension Table Loading**: After loading all dimension tables, proceed with the extraction and transformation of cost-related data.
+*  **Data Filtering**: To ensure data accuracy, filter the cost data to include only records whose zip codes are present in the corresponding source data utilized for this project.
+*  **Nifi Process Group**: For enhanced reliability and maintainability, all these transformations are encapsulated within a dedicated NiFi process group named "ZIP - COSTS."
+
+![zip_cost1](assets/img/nifi_zip_cost_process_group.png)
+![zip_cost1](assets/img/nifi_zip_cost_process_group_inside.png)
+
+
+*  **EXTRACT Process Group**: Cost data is retrieved through API requests within this process group.
+*  **API Request Specificity**: The FlowFile attributes include a unique keyword for each API, which is used to dynamically construct the API request.
+* **Data Retrieval**: The InvokeHTTP processor is utilized to fetch data from the respective APIs based on the specified keywords.
+* **Batch Processing**: Due to the server-imposed 2000-record limit per request, a loop mechanism is implemented. This loop retrieves data in batches of 2000 records, incrementing the offset in each iteration until all records are successfully retrieved.
+
 ![Extract](assets/img/nifi_extract_process_group.png)
 
-### TRANSFORM process group
-*  This process group splits the FlowFile into individual records.
-*  The id_specialty is added to each JSON record.
-*  JSON attributes are renamed to match the corresponding column names in the data warehouse table.
+#### TRANSFORM Process Group:
+
+*  This process group splits the incoming FlowFile into individual JSON records.
+*  The specialty_id attribute is added to each individual record.
+*  JSON attribute names are renamed to align with the corresponding column names in the data warehouse table.
+*  To optimize data warehouse loading performance, the MergeContent processor is utilized to merge individual FlowFiles into smaller groups before the loading step.
 
 ![Extract](assets/img/nifi_transform_process_group.png)
-
-### LOAD in fact_visit_cost
-*  Transform json file to record.
-*  Insert record in fact_visit_cost tables in PosgresSQL database. 
-![load_fact_visit_cost](assets/img/nifi_load_fact_visit_cost.png)
-
-
-
-🚧 **Under Construction** 🚧
 
 
 ## Dataset Used
